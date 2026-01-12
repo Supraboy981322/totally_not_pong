@@ -4,6 +4,7 @@ import (
 	"os"
 	"fmt"
 	"golang.org/x/term"
+	kb "github.com/eiannone/keyboard"
 )
 
 type (
@@ -43,41 +44,63 @@ func init() {
 			Width: w,
 			Height: h,
 		} ; game.Ball = Ball{
-		X: (h/2)-1,
-		Y: (h/2)-1,
+			X: (h/2)-1,
+			Y: (h/2)-1,
 		} ; game.P1 = Paddle {
-				Height: h/10,
+			Height: h/10,
 		} ; game.P2 = Paddle {
-				Height: h/10,
+			Height: h/10,
 		}
 	}
 }
 
 func main() {
+	if e := kb.Open(); e != nil {
+		fmt.Printf("%v\n", e) ; os.Exit(1)
+	} ; defer func() { _ = kb.Close() }()
+
 	cls()
 
 	w, h, _ := term.GetSize(termFd)
 	var oW, oH int //tracks previous window size
 	for {
-		{ //reinit view if window size changed
-			w, h, _ = term.GetSize(termFd)
-			if oW != w || oH != h { reinitScreen() }
-			oW, oH = w, h
+		chkTermChg(w, h, oW, oH)
+		oW, oH = w, h
+
+		{
+			c, _, e := kb.GetKey()
+			if e != nil {
+				cls() ; fmt.Printf("%v\n", e) ; os.Exit(1)
+			}
+	
+			switch c {
+       case 'q': return
+			 case 'k':
+				if game.P1.Pos+game.P1.Height < game.Height {
+					game.P1.Pos++
+				}
+			 case 'j':
+				if game.P1.Pos > 0 {
+					game.P1.Pos--
+				}
+			}
 		}
+
 		for r := range game.Height {
 			if game.View[r] == game.Pre[r] { continue }
 			for c := range game.Width {
 				if game.View[r][c] != game.Pre[r][c] {
 					var char string
 					if c == 0 &&
-					   r >= game.P1.Pos &&
-					   r <= game.P1.Pos+game.P1.Height-1 {
+					   		 r >= game.P1.Pos &&
+					  		 r <= game.P1.Pos+game.P1.Height-1 {
 						char = "\033[48;2;255;199;119m \033[0m"
 					} else if c == game.Width-1 &&
 							   r >= game.P2.Pos &&
 					       r <= game.P2.Pos+game.P2.Height {
 						char = "\033[48;2;130;139;184m \033[0m"
-					} else if c == game.Ball.X-1 && r == game.Ball.Y-1 {
+					} else if c == game.Ball.X-1 &&
+								 r == game.Ball.Y-1 {
 						char = "\033[31;48;2;14;23;41m\033[0m"
 					} else if c != game.Width/2 {
 						char = string(game.View[r][c])
@@ -96,7 +119,7 @@ func main() {
 func reinitScreen() {
 	cls()
 	w, h, e := term.GetSize(termFd)
-	if e != nil { fmt.Printf("%v\n", e) ; os.Exit(1) }
+	if e != nil { cls() ; fmt.Printf("%v\n", e) ; os.Exit(1) }
 	game = Game{
 		Width: w,
 		Height: h,
