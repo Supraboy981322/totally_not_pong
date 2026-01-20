@@ -30,16 +30,20 @@ type (
 var (
 	termFd int
 	game Game
+	old_term_state *term.State
 )
 
 func init() {
 	termFd = int(os.Stdout.Fd())
 	if !term.IsTerminal(termFd) {
 		fmt.Println("err... you don't appear to be a terminal\ncan't render properly")
-		os.Exit(1)
+		exit(1)
+	};{
+		var e error ; old_term_state, e = term.MakeRaw(termFd)
+		if e != nil { fmt.Printf("%v\n", e) ; exit(1) }
 	};{
 		w, h, e := term.GetSize(termFd)
-		if e != nil { fmt.Printf("%v\n", e) ; os.Exit(1) }
+		if e != nil { fmt.Printf("%v\n", e) ; exit(1) }
 		game = Game{
 			Width: w,
 			Height: h,
@@ -56,9 +60,10 @@ func init() {
 
 func main() {
 	if e := kb.Open(); e != nil {
-		fmt.Printf("%v\n", e) ; os.Exit(1)
+		fmt.Printf("%v\n", e) ; exit(1)
 	} ; defer func() { _ = kb.Close() }()
 
+	alt_buf()
 	cls()
 
 	w, h, _ := term.GetSize(termFd)
@@ -70,11 +75,11 @@ func main() {
 		{
 			c, _, e := kb.GetKey()
 			if e != nil {
-				cls() ; fmt.Printf("%v\n", e) ; os.Exit(1)
+				cls() ; fmt.Printf("%v\n", e) ; exit(1)
 			}
 	
 			switch c {
-       case 'q': return
+       case 'q': exit(0) ; return
 			 case 'k':
 				if game.P1.Pos+game.P1.Height < game.Height {
 					game.P1.Pos++
@@ -106,12 +111,11 @@ func main() {
 						char = string(game.View[r][c])
 					} else { char = "\033[48;2;14;23;41m\ueb8a\033[0m" }
 
-
 					//replace blank with background
 					if char == " " { char = "\033[48;2;14;23;41m \033[0m" }
 					fmt.Printf("\033[%d;%dH%s", r+1, c+1, char)
 				} else { continue }
-			} ; game.Pre[r] = game.View[r]
+			}
 		}
 	}
 }
@@ -119,7 +123,7 @@ func main() {
 func reinitScreen() {
 	cls()
 	w, h, e := term.GetSize(termFd)
-	if e != nil { cls() ; fmt.Printf("%v\n", e) ; os.Exit(1) }
+	if e != nil { cls() ; fmt.Printf("%v\n", e) ; exit(1) }
 	game = Game{
 		Width: w,
 		Height: h,
