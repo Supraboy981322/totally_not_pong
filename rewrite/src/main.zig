@@ -1,4 +1,5 @@
 const rl = @import("raylib");
+const hlp = @import("helpers.zig");
 const Player = @import("player.zig").Player;
 const Ball = @import("ball.zig").Ball;
 const types = @import("types.zig");
@@ -26,6 +27,12 @@ pub fn main() !void {
     loop: while (!rl.windowShouldClose()) {
         defer state.tick();
 
+        if (hlp.is_ctrl_down() and rl.isKeyDown(.c))
+            break :loop;
+
+        if (state.is_paused) {
+            continue;
+        }
         ball.tick(.{ .p1 = p1, .p2 = undefined, });
         p1.tick();
 
