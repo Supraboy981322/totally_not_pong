@@ -28,7 +28,7 @@ pub fn main() !void {
         p1.shape.height = @floatFromInt(@divTrunc(screen_height, 10));
         p1.shape.width = @floatFromInt(@divTrunc(@as(u32, @intFromFloat(p1.shape.height)), 5));
 
-        ball.tick();
+        ball.tick(.{ .p1 = p1, .p2 = undefined, });
 
         rl.beginDrawing();
         defer rl.endDrawing();

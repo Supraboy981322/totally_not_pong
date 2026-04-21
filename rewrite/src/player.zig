@@ -1,5 +1,10 @@
 const rl = @import("raylib");
 
+pub const PlayerSet = struct {
+    p1:Player,
+    p2:Player,
+};
+
 pub const Player = struct {
     color:rl.Color,
     shape:rl.Rectangle,
