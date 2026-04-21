@@ -19,8 +19,7 @@
       let
         repo_root = builtins.toString ./.;
 
-        # the server only compiles on one Zig version 
-        zigVersion = "0.16.0";
+        zigVersion = "0.15.2";
 
         # selected Zig package
         zig = zig_overlay.packages.${system}.${zigVersion};
@@ -42,7 +41,17 @@
         # Nix shell
         devShells.default = pkgs.mkShell {
           # install packages
-          packages = [ zig ];
+          packages = (with pkgs; [
+            mesa
+            glibc
+            libXi
+            libXcursor
+            libXrandr
+            libglvnd
+            libXinerama
+            wayland
+            libxkbcommon
+          ]) ++ [ zig ];
         };
       })
     );

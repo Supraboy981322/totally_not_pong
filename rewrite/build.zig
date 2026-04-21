@@ -3,10 +3,10 @@ const std = @import("std");
 pub fn build(b: *std.Build) void {
     //build settings
     const bin = b.addExecutable(.{
-        .name = "pong",
+        .name = "totally_not_pong",
         .root_module = b.createModule(.{
             .root_source_file = b.path("src/main.zig"),
-            .target = b.graph.host
+            .target = b.graph.host,
         }),
     });
 
@@ -18,11 +18,11 @@ pub fn build(b: *std.Build) void {
     const raylib = raylib_dep.module("raylib"); // main raylib module
     const raygui = raylib_dep.module("raygui"); // raygui module
     const raylib_artifact = raylib_dep.artifact("raylib"); // raylib C library
+
+    b.installArtifact(bin);
     bin.root_module.linkLibrary(raylib_artifact);
     bin.root_module.addImport("raylib", raylib);
     bin.root_module.addImport("raygui", raygui);
-
-    b.installArtifact(bin);
 
     //for 'zig build run'
     const run_bin = b.addRunArtifact(bin);
