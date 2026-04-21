@@ -42,4 +42,21 @@ pub const Player = struct {
             else
                 pos > limit;
     }
+
+    pub fn tick(self:*Player) void {
+        const screen_height = rl.getScreenHeight();
+        self.shape.height = @floatFromInt(@divTrunc(screen_height, 10));
+        self.shape.width = @floatFromInt(@divTrunc(@as(u32, @intFromFloat(self.shape.height)), 5));
+        self.speed = @floatFromInt(@divTrunc(screen_height, 30));
+
+        if (rl.isKeyDown(.k) and self.can_move(.up))
+            self.shape.y -= self.speed;
+
+        if (rl.isKeyDown(.j) and self.can_move(.down))
+            self.shape.y += self.speed;
+    }
+
+    pub fn draw(self:*Player) void {
+        rl.drawRectangleRec(self.shape, self.color);
+    }
 };

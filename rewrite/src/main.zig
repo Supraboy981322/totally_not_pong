@@ -1,6 +1,7 @@
 const rl = @import("raylib");
 const Player = @import("player.zig").Player;
 const Ball = @import("ball.zig").Ball;
+const types = @import("types.zig");
 
 pub fn main() !void {
     rl.initWindow(800, 450, "totally not pong (100%)");
@@ -19,31 +20,20 @@ pub fn main() !void {
     var p1:Player = .init(15, 50);
     var ball:Ball = .init(14);
 
-    while (!rl.windowShouldClose()) {
-        const screen_height, _ = .{
-            rl.getScreenHeight(),
-            rl.getScreenWidth(),
-        };
+    var state:types.State = .init();
 
-        p1.shape.height = @floatFromInt(@divTrunc(screen_height, 10));
-        p1.shape.width = @floatFromInt(@divTrunc(@as(u32, @intFromFloat(p1.shape.height)), 5));
+    rl.setExitKey(.null);
+    loop: while (!rl.windowShouldClose()) {
+        defer state.tick();
 
         ball.tick(.{ .p1 = p1, .p2 = undefined, });
+        p1.tick();
 
         rl.beginDrawing();
         defer rl.endDrawing();
+        rl.clearBackground(.black);
 
         ball.draw();
-
-        rl.clearBackground(.black);
-        rl.drawRectangleRec(p1.shape, p1.color);
-
-        p1.speed = @floatFromInt(@divTrunc(screen_height, 30));
-
-        if (rl.isKeyDown(.k) and p1.can_move(.up))
-            p1.shape.y -= p1.speed;
-
-        if (rl.isKeyDown(.j) and p1.can_move(.down))
-            p1.shape.y += p1.speed;
+        p1.draw();
     }
 }
