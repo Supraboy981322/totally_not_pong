@@ -9,6 +9,7 @@ pub const Player = struct {
     color:rl.Color,
     shape:rl.Rectangle,
     speed:f32,
+    points:usize = 0,
 
     pub fn init(width:i32, height:i32) Player {
         return .{
