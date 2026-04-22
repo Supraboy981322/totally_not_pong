@@ -28,7 +28,7 @@ pub fn is_num(str:[]const u8) bool {
             true;
 }
 
-pub fn input_box(state:*types.State, alloc:std.mem.Allocator, y_pos:f32, valid:bool, validity_check:*const fn(u8) bool) !bool {
+pub fn input_box(state:*types.State, alloc:std.mem.Allocator, y_pos:f32, valid:bool, validity_check:?*const fn(u8) bool) !bool {
     var input_txt = &state.aux.arraylist;
 
     const txt_box:rl.Rectangle = b: {
@@ -55,11 +55,12 @@ pub fn input_box(state:*types.State, alloc:std.mem.Allocator, y_pos:f32, valid:b
             },
             else => {
                 const key_int:c_int = @intFromEnum(key.tag);
-                    if (key_int >= 32 and key_int <= 125)
-                        if (validity_check(@intCast(key_int)))
-                            try input_txt.append(alloc, @intCast(key_int))
-                        else
-                            break :loop false;
+                    if (key_int >= 32 and key_int <= 125) {
+                        if (validity_check) |check|
+                            if (!check(@intCast(key_int)))
+                                break :loop false;
+                        try input_txt.append(alloc, @intCast(key_int));
+                }
             },
         } else
             true;
