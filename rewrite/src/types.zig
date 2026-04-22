@@ -20,6 +20,8 @@ pub const State = struct {
         buf:[]u8 = undefined,
         arraylist:std.ArrayList(u8) = undefined,
         num:isize = 0,
+        unum:usize = 0,
+        boolean:bool = false,
     } = .{},
 
     menu:enum{
