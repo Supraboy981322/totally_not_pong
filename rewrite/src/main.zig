@@ -85,6 +85,8 @@ pub fn main() !void {
         rl.clearBackground(.black);
 
         ball.draw();
-        p1.draw();
+        player_set.p1.draw();
+        player_set.p2.draw();
+        try state.draw(player_set);
     }
 }
