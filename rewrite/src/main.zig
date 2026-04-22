@@ -107,8 +107,10 @@ pub fn render_menu(state:*types.State, alloc:std.mem.Allocator) !void {
     switch (state.menu) {
         .start => {
             draw_start_menu(state);
-            if (rl.isKeyDown(.enter))
+            if (rl.isKeyDown(.enter)) {
                 state.menu = .match_opts;
+                while (rl.isKeyDown(.enter)) : (rl.pollInputEvents()) {}
+            }
         },
         .match_opts => try draw_match_opts(state, alloc),
     }
