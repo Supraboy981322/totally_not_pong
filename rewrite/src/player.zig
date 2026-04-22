@@ -3,6 +3,12 @@ const rl = @import("raylib");
 pub const PlayerSet = struct {
     p1:Player,
     p2:Player,
+    pub fn init(p1:Player, p2:Player) PlayerSet {
+        return .{
+            .p1 = p1,
+            .p2 = p2,
+        };
+    }
 };
 
 pub const Player = struct {

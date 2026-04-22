@@ -1,10 +1,17 @@
+const std = @import("std");
 const rl = @import("raylib");
 const hlp = @import("helpers.zig");
-const Player = @import("player.zig").Player;
+const player = @import("player.zig");
+const PlayerSet = player.PlayerSet;
+const Player = player.Player;
 const Ball = @import("ball.zig").Ball;
 const types = @import("types.zig");
 
 pub fn main() !void {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
+    const alloc = gpa.allocator();
+    
     rl.initWindow(800, 450, "totally not pong (100%)");
     defer rl.closeWindow();
 
@@ -18,8 +25,12 @@ pub fn main() !void {
     
     rl.setTargetFPS(60);
 
-    var p1:Player = .init(15, 50);
     var ball:Ball = .init(14);
+
+    var player_set:PlayerSet = .init(
+        .init(15, 50, false, .left, &ball),
+        .init(15, 50, true, .right, &ball)
+    );
 
     var state:types.State = .init();
 
@@ -59,8 +70,15 @@ pub fn main() !void {
             continue;
         }
 
-        ball.tick(.{ .p1 = p1, .p2 = undefined, });
-        p1.tick();
+        const touching_side = ball.tick(player_set);
+        if (touching_side) |side| {
+            if (side == .left)
+                player_set.p2.points += 1
+            else
+                player_set.p1.points += 1;
+        }
+        player_set.p1.tick();
+        player_set.p2.tick();
 
         rl.beginDrawing();
         defer rl.endDrawing();
