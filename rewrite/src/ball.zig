@@ -2,6 +2,7 @@ const rl = @import("raylib");
 const player = @import("player.zig");
 const PlayerSet = player.PlayerSet;
 const Player = player.Player;
+const Side = @import("types.zig").Side;
 
 pub const Ball = struct {
     color:rl.Color,
@@ -24,22 +25,26 @@ pub const Ball = struct {
         };
     }
 
-    pub fn tick(self:*Ball, players:PlayerSet) void {
+    pub fn tick(self:*Ball, players:PlayerSet) ?Side {
+        var touching_side:?Side = null;
+
         self.pos.x += self.speed.x;
         self.pos.y += self.speed.y;
 
-        const w_edge:f32 = @as(f32, @floatFromInt(rl.getScreenWidth())) - self.radius;
-        const at_w_edge = self.pos.x >= w_edge or self.pos.x <= self.radius;
         const on_player = self.touching_player(players);
-        if (at_w_edge or on_player != null) {
+        if (self.touching_edge(null) or on_player != null) {
             self.speed.x *= -1.0;
             if (on_player) |pos|
-                self.pos.x = pos;
+                self.pos.x = pos
+            else
+                touching_side = if (self.touching_edge(.left)) .left else .right;
         }
 
         const h_edge:f32 = @as(f32, @floatFromInt(rl.getScreenHeight())) - self.radius;
         if (self.pos.y >= h_edge or self.pos.y <= self.radius)
             self.speed.y *= -1.0;
+
+        return touching_side;
     }
 
     pub fn draw(self:*Ball) void {
@@ -48,15 +53,31 @@ pub const Ball = struct {
         );
     }
 
+    pub fn touching_edge(self:*Ball, side:?Side) bool {
+        const w_edge:f32 = @as(f32, @floatFromInt(rl.getScreenWidth())) - self.radius;
+        const at_right_edge = self.pos.x >= w_edge;
+        const at_left_edge = self.pos.x <= self.radius;
+        const at_w_edge = at_right_edge or at_left_edge;
+        return
+            if (side) |s|
+                if (s == .left)
+                    at_left_edge
+                else
+                    at_right_edge
+            else
+                at_w_edge;
+    }
+
     pub fn touching_player(self:*Ball, players:PlayerSet) ?f32 {
-        loop: for (&[_]Player{ players.p1, }) |*p| {//players.p2}) |*p| {
+        loop: for (&[_]Player{ players.p1, players.p2 }) |*p| {//players.p2}) |*p| {
+            const pos_width = p.shape.x + if (p.side == .left) p.box.width else 0;
             for ([_]bool{
-                p.shape.y + p.shape.height >= self.pos.y + self.radius,
+                p.shape.y + p.box.height >= self.pos.y + self.radius,
                 p.shape.y <= self.pos.y,
-                p.shape.x + p.shape.width >= self.pos.x
+                if (p.side == .left) pos_width >= self.pos.x else pos_width <= self.pos.x
             }) |check|
                 if (!check) continue :loop;
-            return p.shape.x + p.shape.width;
+            return pos_width;
         }
         return null;
     }
