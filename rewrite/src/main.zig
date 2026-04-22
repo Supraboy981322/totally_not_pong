@@ -196,7 +196,12 @@ pub fn draw_match_opts(state:*types.State, alloc:std.mem.Allocator) !void {
 
             if (rl.isKeyDown(.enter)) {
                 while (rl.isKeyDown(.enter)) : (rl.pollInputEvents()) {}
+                if (state.aux.arraylist.items.len == 0)
+                    try state.aux.arraylist.appendSlice(alloc, "10");
+                state.opts.goal = std.fmt.parseInt(usize, state.aux.arraylist.items, 10) catch unreachable; //user input already validated
+                state.aux.arraylist.clearAndFree(alloc);
                 stage = .done;
+                return;
             }
 
             rl.drawText(
