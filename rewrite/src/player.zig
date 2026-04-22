@@ -68,7 +68,7 @@ pub const Player = struct {
     pub fn can_move(self:*Player, direction:enum{ up, down }) bool {
         const pos =
             if (direction == .down)
-                self.shape.y + self.shape.height
+                self.shape.y + self.box.height
             else
                 self.shape.y;
 
@@ -89,6 +89,12 @@ pub const Player = struct {
         const screen_height = rl.getScreenHeight();
         self.shape.height = @floatFromInt(@divTrunc(screen_height, 10));
         self.shape.width = @floatFromInt(@divTrunc(@as(u32, @intFromFloat(self.shape.height)), 5));
+        self.box.height = self.shape.height + 5;
+        self.box.width = self.shape.width + 5;
+
+        if (self.side == .right)
+            self.shape.x = @as(f32, @floatFromInt(rl.getScreenWidth() - 10)) - self.box.width;
+
         self.speed = @floatFromInt(@divTrunc(screen_height, 30));
 
         if (rl.isKeyDown(.k) and self.can_move(.up))
