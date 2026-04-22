@@ -10,10 +10,19 @@ pub const Side = enum {
 };
 
 pub const State = struct {
+    start_ok:bool = false,
     is_paused:bool = false,
     frame_count:u6 = 0,
 
     arena:std.heap.ArenaAllocator,
+
+    aux_buf:[]u8 = undefined,
+    aux_arraylist:std.ArrayList(u8) = undefined,
+
+    menu:enum{
+        start,
+        match_opts,
+    } = .start,
 
     pub fn init() State {
         return .{
