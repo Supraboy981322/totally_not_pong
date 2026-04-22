@@ -44,7 +44,10 @@ pub fn main() !void {
             break :loop;
 
         if (!state.start_ok) {
-            try render_menu(&state, alloc);
+            if (state.menu == .win)
+                try render_win(&state, alloc, player_set)
+            else
+                try render_menu(&state, alloc);
             continue;
         }
 
@@ -89,6 +92,12 @@ pub fn main() !void {
         player_set.p1.tick();
         player_set.p2.tick();
 
+        for ([_]Player{ player_set.p1, player_set.p2 }) |p|
+            if (p.points >= state.opts.goal) {
+                state.menu = .win;
+                state.aux.boolean = true;
+            };
+
         rl.beginDrawing();
         defer rl.endDrawing();
         rl.clearBackground(.black);
@@ -113,6 +122,7 @@ pub fn render_menu(state:*types.State, alloc:std.mem.Allocator) !void {
             }
         },
         .match_opts => try draw_match_opts(state, alloc),
+        else => unreachable,
     }
 }
 
@@ -229,4 +239,25 @@ pub fn draw_match_opts(state:*types.State, alloc:std.mem.Allocator) !void {
         .done => state.start_ok = true,
         //else => unreachable, //invalid state.aux.num for match_opts
     }
+}
+
+pub fn render_win(state:*types.State, alloc:std.mem.Allocator, player_set:PlayerSet) !void {
+    _ = .{ state, alloc, player_set };
+    rl.beginDrawing();
+    defer rl.endDrawing();
+    rl.clearBackground(.black);
+    const winner =
+        if (player_set.p1.points > player_set.p2.points)
+            player_set.p1
+        else
+            player_set.p2;
+    var msg:[:0]u8 = @constCast("winner: player \x00" ++ "\x00");
+    msg[msg.len - 2] = if (winner.side == .left) '1' else '2';
+    rl.drawText(
+        @constCast(msg),
+        @divFloor(rl.getScreenWidth() - rl.measureText(msg, 30), 2),
+        @divFloor(rl.getScreenHeight() - 15, 2),
+        30,
+        .gold,
+    );
 }

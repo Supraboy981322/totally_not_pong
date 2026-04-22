@@ -25,6 +25,7 @@ pub const State = struct {
     } = .{},
 
     menu:enum{
+        win,
         start,
         match_opts,
     } = .start,
@@ -52,6 +53,8 @@ pub const State = struct {
         if (rl.isKeyDown(.escape))
             self.is_paused =
                 while (rl.isKeyDown(.escape)) : (rl.pollInputEvents()) {} else !self.is_paused;
+        if (self.menu == .win)
+            self.start_ok = false;
     }
 
     pub fn draw(self:*State, player_set:PlayerSet) !void {
