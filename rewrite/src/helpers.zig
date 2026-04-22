@@ -18,7 +18,17 @@ pub fn fast_n_to_s(T:type, n:T, alloc:std.mem.Allocator) ![:0]const u8 {
     return try alloc.dupeZ(u8, buf[0..end]);
 }
 
-pub fn input_box(state:*types.State, alloc:std.mem.Allocator, y_pos:f32) !void {
+pub fn is_num(str:[]const u8) bool {
+    return
+        for (str) |b| {
+            std.debug.print("{d} {x} |{c}|\n", .{b, b, b});
+            if (b >= '9' or b <= '0')
+                return false;
+        } else
+            true;
+}
+
+pub fn input_box(state:*types.State, alloc:std.mem.Allocator, y_pos:f32, valid:bool, validity_check:*const fn(u8) bool) !bool {
     var input_txt = &state.aux.arraylist;
 
     const txt_box:rl.Rectangle = b: {
