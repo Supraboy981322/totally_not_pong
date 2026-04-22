@@ -164,14 +164,30 @@ pub fn draw_match_opts(state:*types.State, alloc:std.mem.Allocator) !void {
         .gold,
     );
 
-    const goal_elem_y_pos:f32 = @divFloor(@as(f32, @floatFromInt(rl.getScreenHeight() - 35 + 20)), 2);
-    const goal_elem_title = "goal (number of points to win)";
-    rl.drawText(
-        goal_elem_title,
-        @divTrunc(rl.getScreenWidth() - rl.measureText(goal_elem_title, 20), 2),
-        @intFromFloat(goal_elem_y_pos - 10),
-        20,
-        .white
-    );
-    try hlp.input_box(state, alloc, goal_elem_y_pos + 35);
+    var stage:enum {
+        goal,
+        done,
+    } = @enumFromInt(state.aux.num);
+    defer state.aux.num = @intFromEnum(stage);
+
+    switch (stage) {
+        .goal => {
+            const goal_elem_y_pos:f32 = @divFloor(@as(f32, @floatFromInt(rl.getScreenHeight() - 35 + 20)), 2);
+            const goal_elem_title = "goal (number of points to win)";
+            rl.drawText(
+                goal_elem_title,
+                @divTrunc(rl.getScreenWidth() - rl.measureText(goal_elem_title, 20), 2),
+                @intFromFloat(goal_elem_y_pos - 10),
+                20,
+                .white
+            );
+            try hlp.input_box(state, alloc, goal_elem_y_pos + 35);
+            if (rl.isKeyDown(.enter)) {
+                while (rl.isKeyDown(.enter)) : (rl.pollInputEvents()) {}
+                stage = .done;
+            }
+        },
+        .done => state.start_ok = true,
+        //else => unreachable, //invalid state.aux.num for match_opts
+    }
 }

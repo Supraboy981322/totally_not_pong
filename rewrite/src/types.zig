@@ -27,6 +27,11 @@ pub const State = struct {
         match_opts,
     } = .start,
 
+    opts:struct{
+        goal:usize = 10,
+        player_count:?u1 = null, //null for full auto
+    } = .{},
+
     pub fn init() State {
         return .{
             .arena = std.heap.ArenaAllocator.init(std.heap.page_allocator),
