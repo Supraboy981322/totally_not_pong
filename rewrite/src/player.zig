@@ -1,4 +1,6 @@
 const rl = @import("raylib");
+const Ball = @import("ball.zig").Ball;
+const Side = @import("types.zig").Side;
 
 pub const PlayerSet = struct {
     p1:Player,
@@ -17,15 +19,48 @@ pub const Player = struct {
     speed:f32,
     points:usize = 0,
 
-    pub fn init(width:i32, height:i32) Player {
+    box:struct {
+        width:f32,
+        height:f32,
+    },
+
+    auto:bool = false,
+    ball:*Ball = undefined,
+
+    side:Side,
+
+    btns:struct {
+        up:rl.KeyboardKey = .null,
+        down:rl.KeyboardKey = .null,
+        pub fn init(side:Side) @This() {
+            return .{
+                .up = if (side == .left) .k else .f,
+                .down = if (side == .left) .j else .d,
+            };
+        }
+    },
+    
+    pub fn init(width:i32, height:i32, auto:bool, side:Side, ball:*Ball) Player {
+        const w:f32, const h:f32 = .{
+            @floatFromInt(width),
+            @floatFromInt(height),
+        };
         return .{
             .color = .white,
             .speed = 2,
+            .auto = auto,
+            .btns = .init(side),
+            .side = side,
+            .ball = if (auto) ball else undefined,
+            .box = .{
+                .width = w + 10,
+                .height = h + 10,
+            },
             .shape = .{
-                .x = 10,
+                .x = if (side == .left) 10 else @floatFromInt(rl.getScreenWidth() - 10),
                 .y = @floatFromInt(@divExact((rl.getScreenWidth() - height), @as(u32, 2))),
-                .width = @floatFromInt(width),
-                .height = @floatFromInt(height),
+                .width = w,
+                .height = h,
             },
         };
     }
