@@ -152,6 +152,8 @@ pub fn draw_start_menu(_:*types.State) void {
 }
 
 pub fn draw_match_opts(state:*types.State, alloc:std.mem.Allocator) !void {
+    const gap = rl.measureText("ab", 20) - (rl.measureText("a", 20) + rl.measureText("b", 20));
+
     rl.clearBackground(.black);
 
     const title = "match options";
@@ -174,18 +176,50 @@ pub fn draw_match_opts(state:*types.State, alloc:std.mem.Allocator) !void {
         .goal => {
             const goal_elem_y_pos:f32 = @divFloor(@as(f32, @floatFromInt(rl.getScreenHeight() - 35 + 20)), 2);
             const goal_elem_title = "goal (number of points to win)";
-            rl.drawText(
-                goal_elem_title,
-                @divTrunc(rl.getScreenWidth() - rl.measureText(goal_elem_title, 20), 2),
-                @intFromFloat(goal_elem_y_pos - 10),
-                20,
-                .white
-            );
-            try hlp.input_box(state, alloc, goal_elem_y_pos + 35);
+
+            const first_half:[:0]const u8 = @constCast(goal_elem_title[0..6]) ++ "\x00";
+            const second_half:[:0]const u8 = @constCast(goal_elem_title[12..]) ++ "\x00";
+            const middle:[:0]const u8 = @constCast(goal_elem_title[first_half.len-1 .. goal_elem_title.len - second_half.len + 1]) ++ "\x00";
+
+            const first_half_len = rl.measureText(first_half, 20);
+            const middle_len = rl.measureText(middle, 20);
+
+            state.aux.unum = state.aux.arraylist.items.len;
+            state.aux.boolean =
+                try hlp.input_box(
+                    state,
+                    alloc,
+                    goal_elem_y_pos + 35,
+                    state.aux.boolean,
+                    &std.ascii.isDigit
+                );
+
             if (rl.isKeyDown(.enter)) {
                 while (rl.isKeyDown(.enter)) : (rl.pollInputEvents()) {}
                 stage = .done;
             }
+
+            rl.drawText(
+                first_half,
+                @divTrunc(rl.getScreenWidth() - rl.measureText(goal_elem_title, 20), 2),
+                @intFromFloat(goal_elem_y_pos - 10),
+                20,
+                .white,
+            );
+            rl.drawText(
+                middle,
+                @divTrunc(rl.getScreenWidth() - rl.measureText(goal_elem_title, 20), 2) + first_half_len + gap,
+                @intFromFloat(goal_elem_y_pos - 10),
+                20,
+                if (state.aux.boolean) .gold else .red,
+            );
+            rl.drawText(
+                second_half,
+                @divTrunc(rl.getScreenWidth() - rl.measureText(goal_elem_title, 20), 2) + first_half_len + gap + middle_len + gap,
+                @intFromFloat(goal_elem_y_pos - 10),
+                20,
+                .white,
+            );
         },
         .done => state.start_ok = true,
         //else => unreachable, //invalid state.aux.num for match_opts
