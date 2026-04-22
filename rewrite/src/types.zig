@@ -16,8 +16,11 @@ pub const State = struct {
 
     arena:std.heap.ArenaAllocator,
 
-    aux_buf:[]u8 = undefined,
-    aux_arraylist:std.ArrayList(u8) = undefined,
+    aux:struct{
+        buf:[]u8 = undefined,
+        arraylist:std.ArrayList(u8) = undefined,
+        num:isize = 0,
+    } = .{},
 
     menu:enum{
         start,

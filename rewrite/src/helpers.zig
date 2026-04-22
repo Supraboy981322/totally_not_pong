@@ -19,7 +19,7 @@ pub fn fast_n_to_s(T:type, n:T, alloc:std.mem.Allocator) ![:0]const u8 {
 }
 
 pub fn input_box(state:*types.State, alloc:std.mem.Allocator, y_pos:f32) !void {
-    var input_txt = &state.aux_arraylist;
+    var input_txt = &state.aux.arraylist;
 
     const txt_box:rl.Rectangle = b: {
         const screen_width = @as(f32, @floatFromInt(rl.getScreenWidth()));

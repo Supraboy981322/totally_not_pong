@@ -33,8 +33,10 @@ pub fn main() !void {
     );
 
     var state:types.State = .init();
-    state.aux_arraylist = try .initCapacity(alloc, 0);
-    defer state.aux_arraylist.deinit(alloc);
+    state.aux.arraylist = try .initCapacity(alloc, 0);
+    defer state.aux.arraylist.deinit(alloc);
+    state.aux.buf = try alloc.alloc(u8, 0);
+    defer alloc.free(state.aux.buf);
 
     rl.setExitKey(.null);
     loop: while (!rl.windowShouldClose()) : (if (state.start_ok) try state.tick()) {
