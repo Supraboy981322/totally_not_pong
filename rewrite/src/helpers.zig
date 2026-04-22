@@ -42,21 +42,30 @@ pub fn input_box(state:*types.State, alloc:std.mem.Allocator, y_pos:f32, valid:b
         };
     };
 
+    var new_valid:bool = valid;
+
     {
         var itr = try @import("keys.zig").KeyItr.init(alloc);
         defer itr.deinit(alloc);
-        while (itr.next()) |key| switch (key.tag) {
+        new_valid = loop: while (itr.next()) |key| switch (key.tag) {
             .backspace => _ = input_txt.pop(),
+            .left_control, .right_control => if (itr.next()) |k| switch (k.tag) {
+                .w, .backspace => inner: while (input_txt.pop()) |b| if (std.ascii.isWhitespace(b)) break :inner,
+                else => {},
+            },
             else => {
                 const key_int:c_int = @intFromEnum(key.tag);
-                if (key_int >= 32 and key_int <= 125) {
-                    try input_txt.append(alloc, @intCast(key_int));
-                }
+                    if (key_int >= 32 and key_int <= 125)
+                        if (validity_check(@intCast(key_int)))
+                            try input_txt.append(alloc, @intCast(key_int))
+                        else
+                            break :loop false;
             },
-        };
+        } else
+            true;
     }
 
-    rl.drawRectangleRec(txt_box, .white);
+    rl.drawRectangleRec(txt_box, if (new_valid) .white else .red);
 
     const visible_input_buf:[:0]const u8 = b: {
         var itr = std.mem.reverseIterator(input_txt.items);
@@ -83,7 +92,7 @@ pub fn input_box(state:*types.State, alloc:std.mem.Allocator, y_pos:f32, valid:b
         @intFromFloat(txt_box.x + 5),
         @intFromFloat(txt_box.y + 8),
         20,
-        .dark_gray,
+        if (new_valid) .dark_gray else .white
     );
 
     if ((state.frame_count / 20) % 2 == 0) rl.drawText(
@@ -91,6 +100,7 @@ pub fn input_box(state:*types.State, alloc:std.mem.Allocator, y_pos:f32, valid:b
         @as(i32, @intFromFloat(txt_box.x)) + 8 + rl.measureText(visible_input_buf, 20),
         @intFromFloat(txt_box.y + 12),
         20,
-        .dark_gray
+        if (new_valid) .dark_gray else .white
     );
+    return new_valid;
 }
