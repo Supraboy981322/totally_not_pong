@@ -97,11 +97,19 @@ pub const Player = struct {
 
         self.speed = @floatFromInt(@divTrunc(screen_height, 30));
 
-        if (rl.isKeyDown(.k) and self.can_move(.up))
-            self.shape.y -= self.speed;
+        if (self.auto) {
+            if (self.ball.pos.y < self.shape.y and self.can_move(.up))
+                self.shape.y -= self.speed;
 
-        if (rl.isKeyDown(.j) and self.can_move(.down))
-            self.shape.y += self.speed;
+            if (self.ball.pos.y > self.shape.y + self.box.height and self.can_move(.down))
+                self.shape.y += self.speed;
+        } else {
+            if (rl.isKeyDown(self.btns.up) and self.can_move(.up))
+                self.shape.y -= self.speed;
+
+            if (rl.isKeyDown(self.btns.down) and self.can_move(.down))
+                self.shape.y += self.speed;
+        }
     }
 
     pub fn draw(self:*Player) void {
