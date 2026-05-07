@@ -39,73 +39,74 @@ pub fn main() !void {
     defer alloc.free(state.aux.buf);
 
     rl.setExitKey(.null);
-    loop: while (!rl.windowShouldClose()) : (if (state.start_ok) try state.tick()) {
+    loop: while (!rl.windowShouldClose()) : (try state.tick()) {
         if (hlp.is_ctrl_down() and rl.isKeyDown(.c))
             break :loop;
 
-        if (!state.start_ok) {
-            if (state.menu == .win)
-                try render_win(&state, alloc, player_set)
-            else
-                try render_menu(&state, alloc);
-            continue;
+        switch (state.menu) {
+
+            .win => try render_win(&state, alloc, player_set),
+
+            .start, .match_opts => try render_menu(&state, alloc),
+
+            .paused => {
+                rl.beginDrawing();
+                defer rl.endDrawing();
+                rl.clearBackground(.dark_gray);
+                const msgs = [_][:0]const u8{
+                    "game paused.",
+                    "press escape to unpause, or ctrl+c to quit",
+                };
+                for (msgs, 0..) |line, i| {
+                    const txt_width = rl.measureText(
+                        line,
+                        30,
+                    );
+                    const v_offset:i32 = @intCast(30 + (50 * (msgs.len - i - 1)));
+                    rl.drawText(
+                        line,
+                        @divTrunc((rl.getScreenWidth() - txt_width), 2),
+                        @divTrunc(rl.getScreenHeight() - v_offset, 2),
+                        30,
+                        .white,
+                    );
+                }
+                rl.pollInputEvents();
+                //if (rl.isKeyReleased(.escape)) state.toggle_pause();
+            },
+
+            .in_game => {
+                //if (rl.isKeyDown(.escape)) {
+                //    state.toggle_pause();
+                //    continue;
+                //}
+
+                const touching_side = ball.tick(player_set);
+                if (touching_side) |side| {
+                    if (side == .left)
+                        player_set.p2.points += 1
+                    else
+                        player_set.p1.points += 1;
+                }
+                player_set.p1.tick();
+                player_set.p2.tick();
+
+                for ([_]Player{ player_set.p1, player_set.p2 }) |p|
+                    if (p.points >= state.opts.goal) {
+                        state.menu = .win;
+                        state.aux.boolean = true;
+                    };
+
+                rl.beginDrawing();
+                defer rl.endDrawing();
+                rl.clearBackground(.black);
+
+                ball.draw();
+                player_set.p1.draw();
+                player_set.p2.draw();
+                try state.draw(player_set);
+            },
         }
-
-        if (rl.isKeyDown(.escape)) {
-            state.is_paused = state.is_paused;
-        }
-
-        if (state.is_paused) {
-            rl.beginDrawing();
-            defer rl.endDrawing();
-            rl.clearBackground(.dark_gray);
-            const msgs = [_][:0]const u8{
-                "game paused.",
-                "press escape to unpause, or ctrl+c to quit",
-            };
-            for (msgs, 0..) |line, i| {
-                const txt_width = rl.measureText(
-                    line,
-                    30,
-                );
-                const v_offset:i32 = @intCast(30 + (50 * (msgs.len - i - 1)));
-                rl.drawText(
-                    line,
-                    @divTrunc((rl.getScreenWidth() - txt_width), 2),
-                    @divTrunc(rl.getScreenHeight() - v_offset, 2),
-                    30,
-                    .white,
-                );
-            }
-            rl.pollInputEvents();
-            if (rl.isKeyReleased(.escape)) state.toggle_pause();
-            continue;
-        }
-
-        const touching_side = ball.tick(player_set);
-        if (touching_side) |side| {
-            if (side == .left)
-                player_set.p2.points += 1
-            else
-                player_set.p1.points += 1;
-        }
-        player_set.p1.tick();
-        player_set.p2.tick();
-
-        for ([_]Player{ player_set.p1, player_set.p2 }) |p|
-            if (p.points >= state.opts.goal) {
-                state.menu = .win;
-                state.aux.boolean = true;
-            };
-
-        rl.beginDrawing();
-        defer rl.endDrawing();
-        rl.clearBackground(.black);
-
-        ball.draw();
-        player_set.p1.draw();
-        player_set.p2.draw();
-        try state.draw(player_set);
     }
 }
 
@@ -236,7 +237,7 @@ pub fn draw_match_opts(state:*types.State, alloc:std.mem.Allocator) !void {
                 .white,
             );
         },
-        .done => state.start_ok = true,
+        .done => state.menu = .in_game,
         //else => unreachable, //invalid state.aux.num for match_opts
     }
 }

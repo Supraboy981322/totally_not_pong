@@ -10,8 +10,6 @@ pub const Side = enum {
 };
 
 pub const State = struct {
-    start_ok:bool = false,
-    is_paused:bool = false,
     frame_count:u6 = 0,
 
     arena:std.heap.ArenaAllocator,
@@ -28,6 +26,8 @@ pub const State = struct {
         win,
         start,
         match_opts,
+        in_game,
+        paused,
     } = .start,
 
     opts:struct{
@@ -42,7 +42,11 @@ pub const State = struct {
     }
 
     pub fn toggle_pause(self:*State) void {
-        self.is_paused = !self.is_paused;
+        switch (self.menu) {
+            .in_game => self.menu = .paused,
+            .paused => self.menu = .in_game,
+            else => @panic("toggle_pause() outside of game mode"),
+        }
     }
 
     pub fn tick(self:*State) !void {
@@ -50,11 +54,10 @@ pub const State = struct {
         const alloc = self.arena.allocator();
         _ = alloc;
         self.frame_count = @mod(self.frame_count + 1, 60);
-        if (rl.isKeyDown(.escape))
-            self.is_paused =
-                while (rl.isKeyDown(.escape)) : (rl.pollInputEvents()) {} else !self.is_paused;
-        if (self.menu == .win)
-            self.start_ok = false;
+        if (rl.isKeyDown(.escape) and (self.menu == .in_game or self.menu == .paused)) {
+            while (rl.isKeyDown(.escape)) : (rl.pollInputEvents()) {}
+            self.toggle_pause();
+        }
     }
 
     pub fn draw(self:*State, player_set:PlayerSet) !void {
