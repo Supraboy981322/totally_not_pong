@@ -1,8 +1,8 @@
 const std = @import("std");
 const hlp = @import("helpers.zig");
 const player = @import("player.zig");
-const Player = player.Player;
-const PlayerSet = player.PlayerSet;
+pub const Player = player.Player;
+pub const PlayerSet = player.PlayerSet;
 const rl = @import("raylib");
 
 pub const Side = enum {

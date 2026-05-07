@@ -1,6 +1,8 @@
 const std = @import("std");
+const rg = @import("raygui");
 const rl = @import("raylib");
 const hlp = @import("helpers.zig");
+const menu = @import("menus.zig");
 const player = @import("player.zig");
 const PlayerSet = player.PlayerSet;
 const Player = player.Player;
@@ -45,9 +47,9 @@ pub fn main() !void {
 
         switch (state.menu) {
 
-            .win => try render_win(&state, alloc, player_set),
+            .win => try menu.render_win(&state, alloc, player_set),
 
-            .start, .match_opts => try render_menu(&state, alloc),
+            .start, .match_opts => try menu.render_menu(&state, alloc),
 
             .paused => {
                 rl.beginDrawing();
@@ -72,15 +74,9 @@ pub fn main() !void {
                     );
                 }
                 rl.pollInputEvents();
-                //if (rl.isKeyReleased(.escape)) state.toggle_pause();
             },
 
             .in_game => {
-                //if (rl.isKeyDown(.escape)) {
-                //    state.toggle_pause();
-                //    continue;
-                //}
-
                 const touching_side = ball.tick(player_set);
                 if (touching_side) |side| {
                     if (side == .left)
@@ -108,157 +104,4 @@ pub fn main() !void {
             },
         }
     }
-}
-
-pub fn render_menu(state:*types.State, alloc:std.mem.Allocator) !void {
-    rl.beginDrawing();
-    defer rl.endDrawing();
-
-    switch (state.menu) {
-        .start => {
-            draw_start_menu(state);
-            if (rl.isKeyDown(.enter)) {
-                state.menu = .match_opts;
-                while (rl.isKeyDown(.enter)) : (rl.pollInputEvents()) {}
-            }
-        },
-        .match_opts => try draw_match_opts(state, alloc),
-        else => unreachable,
-    }
-}
-
-pub fn draw_start_menu(_:*types.State) void {
-    rl.clearBackground(.black);
-
-    const title = "totally not pong (100%)";
-    const titleWidth = rl.measureText(title, 35);
-    rl.drawText(
-        title,
-        @divTrunc(rl.getScreenWidth() - titleWidth, 2),
-        @divTrunc(rl.getScreenHeight(), 2) - 45,
-        35,
-        .sky_blue,
-    );
-
-    const start_txt:[:0]const u8 = "press enter to start";
-    const start_txt_width = rl.measureText(start_txt, 30);
-    
-    rl.drawText(
-        start_txt,
-        @divTrunc(rl.getScreenWidth() - start_txt_width, 2),
-        @divTrunc(rl.getScreenHeight(), 2) + 25,
-        30,
-        .ray_white,
-    );
-
-    const quit_txt:[:0]const u8 = "(press ctrl+c to quit)";
-    const quit_txt_width = rl.measureText(quit_txt, 26);
-    rl.drawText(
-        quit_txt,
-        @divTrunc(rl.getScreenWidth() - quit_txt_width, 2),
-        @divTrunc(rl.getScreenHeight(), 2) + 25 + 41,
-        26,
-        .ray_white,
-    );
-}
-
-pub fn draw_match_opts(state:*types.State, alloc:std.mem.Allocator) !void {
-    const gap = rl.measureText("ab", 20) - (rl.measureText("a", 20) + rl.measureText("b", 20));
-
-    rl.clearBackground(.black);
-
-    const title = "match options";
-    const titleWidth = rl.measureText(title, 30);
-    rl.drawText(
-        title,
-        @divTrunc(rl.getScreenWidth() - titleWidth, 2),
-        50,
-        30,
-        .gold,
-    );
-
-    var stage:enum {
-        goal,
-        done,
-    } = @enumFromInt(state.aux.num);
-    defer state.aux.num = @intFromEnum(stage);
-
-    switch (stage) {
-        .goal => {
-            const goal_elem_y_pos:f32 = @divFloor(@as(f32, @floatFromInt(rl.getScreenHeight() - 35 + 20)), 2);
-            const goal_elem_title = "goal (number of points to win)";
-
-            const first_half:[:0]const u8 = @constCast(goal_elem_title[0..6]) ++ "\x00";
-            const second_half:[:0]const u8 = @constCast(goal_elem_title[12..]) ++ "\x00";
-            const middle:[:0]const u8 = @constCast(goal_elem_title[first_half.len-1 .. goal_elem_title.len - second_half.len + 1]) ++ "\x00";
-
-            const first_half_len = rl.measureText(first_half, 20);
-            const middle_len = rl.measureText(middle, 20);
-
-            state.aux.unum = state.aux.arraylist.items.len;
-            state.aux.boolean =
-                try hlp.input_box(
-                    state,
-                    alloc,
-                    goal_elem_y_pos + 35,
-                    state.aux.boolean,
-                    &std.ascii.isDigit
-                );
-
-            if (rl.isKeyDown(.enter)) {
-                while (rl.isKeyDown(.enter)) : (rl.pollInputEvents()) {}
-                if (state.aux.arraylist.items.len == 0)
-                    try state.aux.arraylist.appendSlice(alloc, "10");
-                state.opts.goal = std.fmt.parseInt(usize, state.aux.arraylist.items, 10) catch unreachable; //user input already validated
-                state.aux.arraylist.clearAndFree(alloc);
-                stage = .done;
-                return;
-            }
-
-            rl.drawText(
-                first_half,
-                @divTrunc(rl.getScreenWidth() - rl.measureText(goal_elem_title, 20), 2),
-                @intFromFloat(goal_elem_y_pos - 10),
-                20,
-                .white,
-            );
-            rl.drawText(
-                middle,
-                @divTrunc(rl.getScreenWidth() - rl.measureText(goal_elem_title, 20), 2) + first_half_len + gap,
-                @intFromFloat(goal_elem_y_pos - 10),
-                20,
-                if (state.aux.boolean) .gold else .red,
-            );
-            rl.drawText(
-                second_half,
-                @divTrunc(rl.getScreenWidth() - rl.measureText(goal_elem_title, 20), 2) + first_half_len + gap + middle_len + gap,
-                @intFromFloat(goal_elem_y_pos - 10),
-                20,
-                .white,
-            );
-        },
-        .done => state.menu = .in_game,
-        //else => unreachable, //invalid state.aux.num for match_opts
-    }
-}
-
-pub fn render_win(state:*types.State, alloc:std.mem.Allocator, player_set:PlayerSet) !void {
-    _ = .{ state, alloc, player_set };
-    rl.beginDrawing();
-    defer rl.endDrawing();
-    rl.clearBackground(.black);
-    const winner =
-        if (player_set.p1.points > player_set.p2.points)
-            player_set.p1
-        else
-            player_set.p2;
-    var msg:[:0]u8 = @constCast("winner: player \x00" ++ "\x00");
-    msg[msg.len - 2] = if (winner.side == .left) '1' else '2';
-    rl.drawText(
-        @constCast(msg),
-        @divFloor(rl.getScreenWidth() - rl.measureText(msg, 30), 2),
-        @divFloor(rl.getScreenHeight() - 15, 2),
-        30,
-        .gold,
-    );
 }
