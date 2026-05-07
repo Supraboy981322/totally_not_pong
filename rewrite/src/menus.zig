@@ -86,7 +86,10 @@ pub fn draw_match_opts(state:*types.State, alloc:std.mem.Allocator) !void {
 
             const first_half:[:0]const u8 = @constCast(goal_elem_title[0..6]) ++ "\x00";
             const second_half:[:0]const u8 = @constCast(goal_elem_title[12..]) ++ "\x00";
-            const middle:[:0]const u8 = @constCast(goal_elem_title[first_half.len-1 .. goal_elem_title.len - second_half.len + 1]) ++ "\x00";
+            const middle:[:0]const u8 = b: {
+                const end = goal_elem_title.len - second_half.len + 1;
+                break :b @constCast(goal_elem_title[first_half.len-1 .. end]) ++ "\x00";
+            };
 
             const first_half_len = rl.measureText(first_half, 20);
             const middle_len = rl.measureText(middle, 20);
@@ -105,29 +108,34 @@ pub fn draw_match_opts(state:*types.State, alloc:std.mem.Allocator) !void {
                 while (rl.isKeyDown(.enter)) : (rl.pollInputEvents()) {}
                 if (state.aux.arraylist.items.len == 0)
                     try state.aux.arraylist.appendSlice(alloc, "10");
-                state.opts.goal = std.fmt.parseInt(usize, state.aux.arraylist.items, 10) catch unreachable; //user input already validated
+                state.opts.goal = std.fmt.parseInt(
+                    usize, state.aux.arraylist.items, 10
+                ) catch unreachable; //user input already validated
                 state.aux.arraylist.clearAndFree(alloc);
                 stage = .done;
                 return;
             }
 
+            var offset:i32 = @divTrunc(rl.getScreenWidth() - rl.measureText(goal_elem_title, 20), 2);
             rl.drawText(
                 first_half,
-                @divTrunc(rl.getScreenWidth() - rl.measureText(goal_elem_title, 20), 2),
+                offset,
                 @intFromFloat(goal_elem_y_pos - 10),
                 20,
                 .white,
             );
+            offset += first_half_len + gap;
             rl.drawText(
                 middle,
-                @divTrunc(rl.getScreenWidth() - rl.measureText(goal_elem_title, 20), 2) + first_half_len + gap,
+                offset,
                 @intFromFloat(goal_elem_y_pos - 10),
                 20,
                 if (state.aux.boolean) .gold else .red,
             );
+            offset += middle_len + gap;
             rl.drawText(
                 second_half,
-                @divTrunc(rl.getScreenWidth() - rl.measureText(goal_elem_title, 20), 2) + first_half_len + gap + middle_len + gap,
+                offset,
                 @intFromFloat(goal_elem_y_pos - 10),
                 20,
                 .white,
