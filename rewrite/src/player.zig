@@ -40,13 +40,13 @@ pub const Player = struct {
         }
     },
     
-    pub fn init(width:i32, height:i32, auto:bool, side:Side, ball:*Ball) Player {
+    pub fn init(width:i32, height:i32, auto:bool, side:Side, ball:*Ball, color:rl.Color) Player {
         const w:f32, const h:f32 = .{
             @floatFromInt(width),
             @floatFromInt(height),
         };
         return .{
-            .color = .white,
+            .color = color,
             .speed = 2,
             .auto = auto,
             .btns = .init(side),

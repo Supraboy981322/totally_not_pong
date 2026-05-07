@@ -28,8 +28,8 @@ pub fn main() !void {
     var ball:Ball = .init(14);
 
     var player_set:PlayerSet = .init(
-        .init(15, 50, false, .left, &ball),
-        .init(15, 50, true, .right, &ball)
+        .init(15, 50, false, .left, &ball, .red),
+        .init(15, 50, true, .right, &ball, .blue)
     );
 
     var state:types.State = .init();
