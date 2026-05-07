@@ -116,7 +116,8 @@ pub fn draw_match_opts(state:*types.State, alloc:std.mem.Allocator) !void {
                 return;
             }
 
-            var offset:i32 = @divTrunc(rl.getScreenWidth() - rl.measureText(goal_elem_title, 20), 2);
+            const title_real_len = rl.measureText(goal_elem_title, 20);
+            var offset:i32 = @divTrunc(rl.getScreenWidth() - title_real_len, 2);
             rl.drawText(
                 first_half,
                 offset,
