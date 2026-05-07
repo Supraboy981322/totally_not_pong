@@ -12,6 +12,11 @@ pub const Side = enum {
 pub const State = struct {
     frame_count:u6 = 0,
 
+    screen:struct {
+        height_f32:f32 = undefined,
+        width_f32:f32 = undefined,
+    } = .{},
+
     arena:std.heap.ArenaAllocator,
 
     aux:struct{
@@ -50,6 +55,9 @@ pub const State = struct {
     }
 
     pub fn tick(self:*State) !void {
+        self.screen.height_f32 = @floatFromInt(rl.getScreenHeight());
+        self.screen.width_f32 = @floatFromInt(rl.getScreenWidth());
+        
         defer _ = self.arena.reset(.free_all);
         const alloc = self.arena.allocator();
         _ = alloc;
