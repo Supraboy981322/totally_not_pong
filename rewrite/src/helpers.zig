@@ -71,8 +71,7 @@ pub fn input_box(state:*types.State, alloc:std.mem.Allocator, y_pos:f32, valid:b
         try input_txt.append(alloc, 0);
         var buf_len:f32 = @floatFromInt(rl.measureText(@ptrCast(input_txt.items), 20));
         var start:usize = 0;
-        while (buf_len >= txt_box.width - 15) {
-            start += 1;
+        while (buf_len >= txt_box.width - 15) : (start += 1) {
             buf_len = @floatFromInt(rl.measureText(@ptrCast(input_txt.items[start..]), 20));
         }
         _ = input_txt.pop();
