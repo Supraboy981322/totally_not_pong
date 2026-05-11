@@ -70,12 +70,12 @@ pub fn input_box(state:*types.State, alloc:std.mem.Allocator, y_pos:f32, valid:b
     const visible_input_buf:[:0]const u8 = b: {
         try input_txt.append(alloc, 0);
         var buf_len:f32 = @floatFromInt(rl.measureText(@ptrCast(input_txt.items), 20));
-        if (buf_len < txt_box.width) {
+        if (buf_len < txt_box.width - 15) {
             _ = input_txt.pop();
             break :b try alloc.dupeZ(u8, input_txt.items);
         }
         var start:usize = 0;
-        while (buf_len >= txt_box.width) {
+        while (buf_len >= txt_box.width - 15) {
             start += 1;
             buf_len = @floatFromInt(rl.measureText(@ptrCast(input_txt.items[start..]), 20));
         }
