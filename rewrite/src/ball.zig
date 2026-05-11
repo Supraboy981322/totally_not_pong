@@ -15,7 +15,7 @@ pub const Ball = struct {
             .color = .white,
             .radius = radius,
             .speed = .{
-                .x = 5.0,
+                .x = @floatFromInt(rl.getRandomValue(-5, 5)),
                 .y = 4.0,
             },
             .pos = .{
