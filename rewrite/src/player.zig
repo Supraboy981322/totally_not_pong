@@ -1,5 +1,5 @@
 const rl = @import("raylib");
-const Ball = @import("ball.zig").Ball;
+const Ball = @import("ball.zig");
 const Side = @import("types.zig").Side;
 
 pub const PlayerSet = struct {

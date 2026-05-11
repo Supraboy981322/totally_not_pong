@@ -6,7 +6,7 @@ const menu = @import("menus.zig");
 const player = @import("player.zig");
 const PlayerSet = player.PlayerSet;
 const Player = player.Player;
-const Ball = @import("ball.zig").Ball;
+const Ball = @import("ball.zig");
 const types = @import("types.zig");
 
 pub fn main() !void {
