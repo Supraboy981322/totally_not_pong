@@ -78,7 +78,7 @@ pub fn main() !void {
             },
 
             .in_game => {
-                const touching_side = ball.tick(player_set);
+                const touching_side = ball.tick(player_set, dt);
                 if (touching_side) |side| {
                     if (side == .left)
                         player_set.p2.points += 1

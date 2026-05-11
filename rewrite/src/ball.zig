@@ -25,11 +25,16 @@ pub const Ball = struct {
         };
     }
 
-    pub fn tick(self:*Ball, players:PlayerSet) ?Side {
+    pub fn tick(self:*Ball, players:PlayerSet, dt:f32) ?Side {
         var touching_side:?Side = null;
 
-        self.pos.x += self.speed.x;
-        self.pos.y += self.speed.y;
+        const actual_speed:rl.Vector2 = .{
+            .x = self.speed.x * dt * 75,
+            .y = self.speed.y * dt * 75,
+        };
+
+        self.pos.x += actual_speed.x;
+        self.pos.y += actual_speed.y;
 
         const on_player = self.touching_player(players);
         if (self.touching_edge(null) or on_player != null) {
