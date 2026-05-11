@@ -67,6 +67,7 @@ pub fn input_box(state:*types.State, alloc:std.mem.Allocator, y_pos:f32, valid:b
 
     rl.drawRectangleRec(txt_box, if (new_valid) .white else .red);
 
+    // FIXME: this is inefficient (why did I write this?)
     const visible_input_buf:[:0]const u8 = b: {
         var itr = std.mem.reverseIterator(input_txt.items);
         var buf = try std.ArrayList(u8).initCapacity(alloc, 0);
@@ -79,7 +80,7 @@ pub fn input_box(state:*types.State, alloc:std.mem.Allocator, y_pos:f32, valid:b
             const buf_len = @as(f32, @floatFromInt(rl.measureText(buf_elderly, 20)));
             if (buf_len > txt_box.width) break;
         }
-        //for (0..3) |_| _ = buf.pop();
+        //for (0..3) |_| _ = buf.pop(); // TODO: why is this here?
         alloc.free(buf_elderly);
         buf_elderly = try alloc.dupeZ(u8, buf.items);
         std.mem.reverse(u8, buf_elderly);
