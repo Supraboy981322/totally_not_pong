@@ -27,7 +27,7 @@ pub fn main() !void {
     
     rl.setTargetFPS(60);
 
-    var ball:Ball = .init(14);
+    var ball:Ball = .init(10);
 
     var player_set:PlayerSet = .init(
         .init(15, 50, false, .left, &ball, .red),
