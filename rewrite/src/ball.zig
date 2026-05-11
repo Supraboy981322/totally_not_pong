@@ -1,7 +1,6 @@
 const rl = @import("raylib");
-const player = @import("player.zig");
-const PlayerSet = player.PlayerSet;
-const Player = player.Player;
+const Player = @import("player.zig");
+const PlayerSet = Player.PlayerSet;
 const Side = @import("types.zig").Side;
 
 const Ball = @This();

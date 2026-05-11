@@ -3,9 +3,8 @@ const rg = @import("raygui");
 const rl = @import("raylib");
 const hlp = @import("helpers.zig");
 const menu = @import("menus.zig");
-const player = @import("player.zig");
-const PlayerSet = player.PlayerSet;
-const Player = player.Player;
+const Player = @import("player.zig");
+const PlayerSet = Player.PlayerSet;
 const Ball = @import("ball.zig");
 const types = @import("types.zig");
 

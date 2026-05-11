@@ -4,7 +4,7 @@ const rg = @import("raygui");
 const hlp = @import("helpers.zig");
 const types = @import("types.zig");
 
-const PlayerSet = types.PlayerSet;
+const PlayerSet = @import("player.zig").PlayerSet;
 
 pub fn render_menu(state:*types.State, alloc:std.mem.Allocator) !void {
     rl.beginDrawing();
