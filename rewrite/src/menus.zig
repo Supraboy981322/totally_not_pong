@@ -82,7 +82,7 @@ pub fn draw_match_opts(state:*types.State, alloc:std.mem.Allocator) !void {
     switch (stage) {
         .goal => {
             const goal_elem_y_pos:f32 = @divFloor(state.screen.height_f32 - 35 + 20, 2);
-            const goal_elem_title = "goal (number of points to win)";
+            const goal_elem_title = "goal (number of points to win) (defaults to 10)";
 
             const first_half:[:0]const u8 = @constCast(goal_elem_title[0..6]) ++ "\x00";
             const second_half:[:0]const u8 = @constCast(goal_elem_title[12..]) ++ "\x00";
