@@ -47,7 +47,7 @@ pub const Player = struct {
         };
         return .{
             .color = color,
-            .speed = 2,
+            .speed = 5,
             .auto = auto,
             .btns = .init(side),
             .side = side,
@@ -85,7 +85,7 @@ pub const Player = struct {
                 pos > limit;
     }
 
-    pub fn tick(self:*Player) void {
+    pub fn tick(self:*Player, dt:f32) void {
         const screen_height = rl.getScreenHeight();
         self.shape.height = @floatFromInt(@divTrunc(screen_height, 10));
         self.shape.width = @floatFromInt(@divTrunc(@as(u32, @intFromFloat(self.shape.height)), 5));
@@ -97,18 +97,20 @@ pub const Player = struct {
 
         self.speed = @floatFromInt(@divTrunc(screen_height, 30));
 
+        const actual_speed = self.speed * dt * 50;
+
         if (self.auto) {
             if (self.ball.pos.y < self.shape.y and self.can_move(.up))
-                self.shape.y -= self.speed;
+                self.shape.y -= actual_speed; 
 
             if (self.ball.pos.y > self.shape.y + self.box.height and self.can_move(.down))
-                self.shape.y += self.speed;
+                self.shape.y += actual_speed;
         } else {
             if (rl.isKeyDown(self.btns.up) and self.can_move(.up))
-                self.shape.y -= self.speed;
+                self.shape.y -= actual_speed;
 
             if (rl.isKeyDown(self.btns.down) and self.can_move(.down))
-                self.shape.y += self.speed;
+                self.shape.y += actual_speed;
         }
     }
 

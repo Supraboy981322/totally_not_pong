@@ -44,6 +44,7 @@ pub fn main() !void {
     loop: while (!rl.windowShouldClose()) : (try state.tick()) {
         if (hlp.is_ctrl_down() and rl.isKeyDown(.c))
             break :loop;
+        const dt = rl.getFrameTime();
 
         switch (state.menu) {
 
@@ -84,8 +85,8 @@ pub fn main() !void {
                     else
                         player_set.p1.points += 1;
                 }
-                player_set.p1.tick();
-                player_set.p2.tick();
+                player_set.p1.tick(dt);
+                player_set.p2.tick(dt);
 
                 for ([_]Player{ player_set.p1, player_set.p2 }) |p|
                     if (p.points >= state.opts.goal) {
