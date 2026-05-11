@@ -74,8 +74,11 @@ pub const Ball = struct {
     }
 
     pub fn touching_player(self:*Ball, players:PlayerSet) ?struct{ side:Side, pos:f32 } {
-        for (&[_]Player{ players.p1, players.p2 }) |*p| {//players.p2}) |*p| {
-            if (rl.checkCollisionCircleRec(self.pos, self.radius, p.shape)) return .{ .side = p.side, .pos = p.shape.x + if (p.side == .left) p.box.width else 0 };
+        for (&[_]Player{ players.p1, players.p2 }) |*p| {
+            if (rl.checkCollisionCircleRec(self.pos, self.radius, p.shape)) return .{
+                .side = p.side,
+                .pos = p.shape.x + if (p.side == .left) p.box.width else 0
+            };
         }
         return null;
     }
