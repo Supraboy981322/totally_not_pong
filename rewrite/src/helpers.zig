@@ -67,24 +67,20 @@ pub fn input_box(state:*types.State, alloc:std.mem.Allocator, y_pos:f32, valid:b
 
     rl.drawRectangleRec(txt_box, if (new_valid) .white else .red);
 
-    // FIXME: this is inefficient (why did I write this?)
     const visible_input_buf:[:0]const u8 = b: {
-        var itr = std.mem.reverseIterator(input_txt.items);
-        var buf = try std.ArrayList(u8).initCapacity(alloc, 0);
-        defer buf.deinit(alloc);
-        var buf_elderly = try alloc.allocSentinel(u8, 0, 0);
-        while (itr.next()) |b| {
-            try buf.append(alloc, b);
-            alloc.free(buf_elderly);
-            buf_elderly = try alloc.dupeZ(u8, buf.items);
-            const buf_len = @as(f32, @floatFromInt(rl.measureText(buf_elderly, 20)));
-            if (buf_len > txt_box.width) break;
+        try input_txt.append(alloc, 0);
+        var buf_len:f32 = @floatFromInt(rl.measureText(@ptrCast(input_txt.items), 20));
+        if (buf_len < txt_box.width) {
+            _ = input_txt.pop();
+            break :b try alloc.dupeZ(u8, input_txt.items);
         }
-        //for (0..3) |_| _ = buf.pop(); // TODO: why is this here?
-        alloc.free(buf_elderly);
-        buf_elderly = try alloc.dupeZ(u8, buf.items);
-        std.mem.reverse(u8, buf_elderly);
-        break :b buf_elderly;
+        var start:usize = 0;
+        while (buf_len >= txt_box.width) {
+            start += 1;
+            buf_len = @floatFromInt(rl.measureText(@ptrCast(input_txt.items[start..]), 20));
+        }
+        _ = input_txt.pop();
+        break :b try alloc.dupeZ(u8, input_txt.items[start..]);
     };
     defer alloc.free(visible_input_buf);
 
