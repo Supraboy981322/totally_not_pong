@@ -79,7 +79,7 @@ pub fn input_box(state:*types.State, alloc:std.mem.Allocator, y_pos:f32, valid:b
             const buf_len = @as(f32, @floatFromInt(rl.measureText(buf_elderly, 20)));
             if (buf_len > txt_box.width) break;
         }
-        for (0..3) |_| _ = buf.pop();
+        //for (0..3) |_| _ = buf.pop();
         alloc.free(buf_elderly);
         buf_elderly = try alloc.dupeZ(u8, buf.items);
         std.mem.reverse(u8, buf_elderly);
