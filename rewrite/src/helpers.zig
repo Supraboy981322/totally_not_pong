@@ -45,25 +45,24 @@ pub fn input_box(state:*types.State, alloc:std.mem.Allocator, y_pos:f32, valid:b
     var new_valid:bool = valid;
 
     {
-        var itr = try @import("keys.zig").KeyItr.init(alloc);
-        defer itr.deinit(alloc);
-        new_valid = loop: while (itr.next()) |key| switch (key.tag) {
-            .backspace => _ = input_txt.pop(),
-            .left_control, .right_control => if (itr.next()) |k| switch (k.tag) {
-                .w, .backspace => inner: while (input_txt.pop()) |b| if (std.ascii.isWhitespace(b)) break :inner,
-                else => {},
-            },
-            else => {
-                const key_int:c_int = @intFromEnum(key.tag);
-                    if (key_int >= 32 and key_int <= 125) {
-                        if (validity_check) |check|
-                            if (!check(@intCast(key_int)))
-                                break :loop false;
-                        try input_txt.append(alloc, @intCast(key_int));
+        if (rl.isKeyDown(.left_control) or rl.isKeyDown(.right_control)) {
+            if (rl.isKeyDown(.w) or rl.isKeyDown(.backspace))
+                loop: while (input_txt.pop()) |b| if (std.ascii.isWhitespace(b)) break :loop;
+        } else if (rl.isKeyDown(.backspace))
+            _ = input_txt.pop();
+
+        new_valid = blk: {
+            var key = rl.getCharPressed();
+            while (key != 0) : (key = rl.getCharPressed()) {
+                if (key >= 32 and key <= 125) {
+                    if (validity_check) |check|
+                        if (!check(@intCast(key)))
+                            break :blk false;
+                    try input_txt.append(alloc, @intCast(key));
                 }
-            },
-        } else
-            true;
+            }
+            break :blk true;
+        };
     }
 
     rl.drawRectangleRec(txt_box, if (new_valid) .white else .red);
