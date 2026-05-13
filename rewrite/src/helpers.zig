@@ -96,3 +96,12 @@ pub fn input_box(state:*types.State, alloc:std.mem.Allocator, y_pos:f32, valid:b
     );
     return new_valid;
 }
+
+pub fn determine_random_direction() f32 {
+    const rand = std.crypto.random;
+    return
+        if (rand.boolean())
+            @floatFromInt(rl.getRandomValue(3, 5))
+        else
+            @floatFromInt(rl.getRandomValue(-5, 3));
+}

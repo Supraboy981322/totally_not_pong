@@ -1,4 +1,5 @@
 const rl = @import("raylib");
+const hlp = @import("helpers.zig");
 const Player = @import("player.zig");
 const PlayerSet = Player.PlayerSet;
 const Side = @import("types.zig").Side;
@@ -15,7 +16,7 @@ pub fn init(radius:f32) Ball {
         .color = .white,
         .radius = radius,
         .speed = .{
-            .x = @floatFromInt(rl.getRandomValue(-5, 5)),
+            .x = hlp.determine_random_direction(),//@floatFromInt(rl.getRandomValue(-5, 5)),
             .y = 4.0,
         },
         .pos = .{
