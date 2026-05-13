@@ -16,7 +16,7 @@ pub fn init(radius:f32) Ball {
         .color = .white,
         .radius = radius,
         .speed = .{
-            .x = hlp.determine_random_direction(),//@floatFromInt(rl.getRandomValue(-5, 5)),
+            .x = hlp.determine_random_direction(),
             .y = 4.0,
         },
         .pos = .{
